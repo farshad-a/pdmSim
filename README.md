@@ -21,7 +21,7 @@ The `sim.sh` script can take one of the arguments:
 
 4. Deploy the flow by clicking on <img src="figures/node-red_deploy_button.png">
 
-**Important Note:** Rebuilding the images causes the crenetials to be lost. Perform the fourth step for every build triggered by `./sim.sh reload` command. It also causes all the other changes to nodes to be lost. To persist new changes the base `flow.json` file in the parent directory must be updated before running this command or `./sim.sh rm`.
+**Important Note:** Rebuilding the images causes the crenetials to be lost. Perform the third step for every build triggered by `./sim.sh reload` command. It also causes all the other changes to nodes to be lost. To persist new changes the base `flow.json` file in the parent directory must be updated before running this command or `./sim.sh rm`.
 
 ### Adding New Nodes to Node-RED Image
 To push new features added to the Node-RED flow:
