@@ -1,0 +1,606 @@
+[
+    {
+        "id": "d907382e.777fa8",
+        "type": "tab",
+        "label": "AMP",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "75af0f24.cd9bf",
+        "type": "ui_group",
+        "z": "",
+        "name": "AMP FESTO LINE",
+        "tab": "cf35b224.3676",
+        "order": 1,
+        "disp": true,
+        "width": 24,
+        "collapse": false
+    },
+    {
+        "id": "cfafff28.7df5e",
+        "type": "MySQLdatabase",
+        "z": "",
+        "name": "",
+        "host": "sim-mysql",
+        "port": "3306",
+        "db": "festo",
+        "tz": "",
+        "charset": ""
+    },
+    {
+        "id": "cf35b224.3676",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "37a4fbef.2d7194",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "b04d9fa4.f56fa",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "QUALITY SORTING STATION",
+        "func": "// initialise the counter to 0 if it doesn't exist already\nvar countG = context.get('countG')||0;\nvar countB = context.get('countB')||0;\ncountG += Math.floor(Math.random() * (40 - 25)) + 25 ;\ncountB += Math.floor(Math.random() * (20 - 5)) + 5 ;\n// store the value back\ncontext.set('countG',countG);\ncontext.set('countB',countB);\nconst now = new Date();\nmsg.topic = 'quality sorting';\nmsg.payload = [countG, countB, now.toISOString()];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 310,
+        "y": 60,
+        "wires": [
+            [
+                "626f1d25.01be04",
+                "839b3b50.2a7618",
+                "d8fba48d.e0f208"
+            ]
+        ],
+        "icon": "font-awesome/fa-industry"
+    },
+    {
+        "id": "41e6d477.20b6bc",
+        "type": "inject",
+        "z": "d907382e.777fa8",
+        "name": "",
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 70,
+        "y": 60,
+        "wires": [
+            [
+                "b04d9fa4.f56fa"
+            ]
+        ]
+    },
+    {
+        "id": "cdd3d0a8.04bb6",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "STORAGE STATION",
+        "func": "let totalG = msg.payload;\n\nvar stored = context.get('stored')||0;\nvar dispatched = context.get('dispatched')||0;\n\nstored += Math.floor(Math.random() * (25 - 10)) + 10 ;\nlet currentDispatch = Math.floor(Math.random() * (10 - 5)) + 5 ;\ndispatched += currentDispatch\nstored -= currentDispatch;\n\ncontext.set('dispatched',dispatched);\ncontext.set('stored', stored);\n\nvar notStored = context.get('notStored')||0;\nnotStored = totalG - (stored + dispatched);\ncontext.set('notStored',notStored);\n\nconst now = new Date();\nmsg.topic = 'storage';\nmsg.payload = [stored, notStored, dispatched, currentDispatch, now.toISOString()];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 280,
+        "y": 380,
+        "wires": [
+            [
+                "71da7193.679ec",
+                "1cc47e26.4aaec2",
+                "c908c7cd.a078d8",
+                "ca57d019.0c693",
+                "d8fba48d.e0f208"
+            ]
+        ],
+        "icon": "font-awesome/fa-industry"
+    },
+    {
+        "id": "571f9cd5.9789c4",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Corn Storage",
+        "group": "75af0f24.cd9bf",
+        "order": 13,
+        "width": 12,
+        "height": 5,
+        "label": "Corn Storage Station",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": "1",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1300,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "626f1d25.01be04",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Total Good Corn",
+        "func": "msg.topic = 'good';\nmsg.payload = msg.payload[0]; //good corn\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 580,
+        "y": 80,
+        "wires": [
+            [
+                "8bd45902.87a038",
+                "88ea1184.3c815",
+                "cdd3d0a8.04bb6"
+            ]
+        ]
+    },
+    {
+        "id": "839b3b50.2a7618",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Total Bad Corn",
+        "func": "msg.topic = 'bad'\nmsg.payload = msg.payload[1]; //bad corn\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 580,
+        "y": 40,
+        "wires": [
+            [
+                "8bd45902.87a038",
+                "88ea1184.3c815"
+            ]
+        ]
+    },
+    {
+        "id": "8bd45902.87a038",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "",
+        "group": "75af0f24.cd9bf",
+        "order": 1,
+        "width": 12,
+        "height": 5,
+        "label": "Quality Sorting Station",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1320,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "88ea1184.3c815",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Good-bad Corn Ratio",
+        "group": "75af0f24.cd9bf",
+        "order": 3,
+        "width": 7,
+        "height": 5,
+        "label": "Good-bad Corn Ratio",
+        "chartType": "pie",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1320,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fa6e32bb.fc356",
+        "type": "inject",
+        "z": "d907382e.777fa8",
+        "name": "",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "x": 1090,
+        "y": 800,
+        "wires": [
+            [
+                "88ea1184.3c815",
+                "8bd45902.87a038",
+                "571f9cd5.9789c4",
+                "a3fea5b5.4ce498"
+            ]
+        ]
+    },
+    {
+        "id": "71da7193.679ec",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Stored Corn",
+        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'stored';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 750,
+        "y": 320,
+        "wires": [
+            [
+                "571f9cd5.9789c4"
+            ]
+        ]
+    },
+    {
+        "id": "1cc47e26.4aaec2",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Not Stored Corn",
+        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'not stored'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 760,
+        "y": 360,
+        "wires": [
+            [
+                "571f9cd5.9789c4"
+            ]
+        ]
+    },
+    {
+        "id": "c908c7cd.a078d8",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Dispached",
+        "func": "msg.payload = msg.payload[2];\nmsg.topic = 'dispached'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 750,
+        "y": 400,
+        "wires": [
+            [
+                "571f9cd5.9789c4"
+            ]
+        ]
+    },
+    {
+        "id": "bae2c841.61a408",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "DOSING STATION",
+        "func": "let received = msg.payload;\nvar stored = context.get('stored')||0;\nvar produced = context.get('produced')||0;\n\nstored += received ;\nlet currentDispatch = Math.floor(Math.random() * (5 - 1)) + 1 ;\nproduced += currentDispatch;\nstored -= currentDispatch;\n\ncontext.set('produced',produced);\ncontext.set('stored', stored);\n\nconst now = new Date();\nmsg.topic = 'dosing';\nmsg.payload = [stored, produced, now.toISOString()];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 270,
+        "y": 600,
+        "wires": [
+            [
+                "24355cca.2c28d4",
+                "9b7d12ba.cd37d",
+                "d8fba48d.e0f208"
+            ]
+        ],
+        "icon": "font-awesome/fa-industry"
+    },
+    {
+        "id": "a3fea5b5.4ce498",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Dosing Station",
+        "group": "75af0f24.cd9bf",
+        "order": 14,
+        "width": 12,
+        "height": 5,
+        "label": "Dosing Station",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1300,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9b7d12ba.cd37d",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Produced (Dispached)",
+        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'produced'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 760,
+        "y": 620,
+        "wires": [
+            [
+                "a3fea5b5.4ce498"
+            ]
+        ]
+    },
+    {
+        "id": "24355cca.2c28d4",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Stored Corn",
+        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'stored';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 730,
+        "y": 580,
+        "wires": [
+            [
+                "a3fea5b5.4ce498"
+            ]
+        ]
+    },
+    {
+        "id": "ca57d019.0c693",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "currentDispatch",
+        "func": "msg.payload = msg.payload[3];\nmsg.topic = 'current dispatch'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 760,
+        "y": 440,
+        "wires": [
+            [
+                "bae2c841.61a408"
+            ]
+        ]
+    },
+    {
+        "id": "d8fba48d.e0f208",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Bosch IoT Gateway",
+        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.good = arrivedPayload[0];\n    msg.payload.bad = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO qualitySorting (`good`, `bad`, `timestamp`) VALUES (:good, :bad, :timestamp);\"\n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.stored = arrivedPayload[0];\n    msg.payload.notStored = arrivedPayload[1];\n    msg.payload.dispatched = arrivedPayload[2];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO storage (`stored`, `notStored`,`dispatched`, `timestamp`) VALUES (:stored, :notStored, :dispatched, :timestamp);\"\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.stored = arrivedPayload[0];\n    msg.payload.produced = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO dosing (`stored`, `produced`, `timestamp`) VALUES (:stored, :produced, :timestamp);\"   \n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 570,
+        "y": 240,
+        "wires": [
+            [
+                "60623fc5.12a7a"
+            ]
+        ],
+        "icon": "font-awesome/fa-cube"
+    },
+    {
+        "id": "60623fc5.12a7a",
+        "type": "mysql",
+        "z": "d907382e.777fa8",
+        "mydb": "cfafff28.7df5e",
+        "name": "FESTO DB",
+        "x": 870,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f818017d.6eedb",
+        "type": "inject",
+        "z": "d907382e.777fa8",
+        "name": "Clear Signal",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 810,
+        "y": 120,
+        "wires": [
+            [
+                "651df3d6.5f2e7c"
+            ]
+        ]
+    },
+    {
+        "id": "651df3d6.5f2e7c",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Clear Tables",
+        "func": "msg.payload = {};\n\nmsg.topic = \"TRUNCATE TABLE dosing;\"\nnode.send(msg);\n\nmsg.topic = \"TRUNCATE TABLE qualitySorting;\"\nnode.send(msg);\n\nmsg.topic = \"TRUNCATE TABLE storage;\"\nnode.send(msg);\n\nreturn;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 820,
+        "y": 180,
+        "wires": [
+            [
+                "60623fc5.12a7a"
+            ]
+        ]
+    }
+]

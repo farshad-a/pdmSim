@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  node-red:
+    build: ./nodered-init
+    container_name: sim-nodered
+    environment:
+      - TZ=Australia/Melbourne
+    ports:
+      - "1880:1880"
+    networks:
+      - simnet
+    depends_on:
+      - mysql
+      - mqtt-broker
+  mysql:
+    build: ./mysql-init
+    container_name: sim-mysql
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - simnet
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+  mqtt-broker:
+    build: ./mosquitto-init
+    container_name: sim-broker
+    ports:
+      - "1883:1883"
+    networks:
+      - simnet
+networks:
+  simnet:
+    driver: bridge
