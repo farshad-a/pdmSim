@@ -138,9 +138,11 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "QUALITY SORTING STATION",
-        "func": "// initialise the counter to 0 if it doesn't exist already\nvar countG = context.get('countG')||0;\nvar countB = context.get('countB')||0;\ncountG += Math.floor(Math.random() * (40 - 25)) + 25 ;\ncountB += Math.floor(Math.random() * (20 - 5)) + 5 ;\n// store the value back\ncontext.set('countG',countG);\ncontext.set('countB',countB);\nconst now = new Date();\nmsg.topic = 'quality sorting';\nmsg.payload = [countG, countB, now.toISOString()];\nreturn msg;",
+        "func": "//initialise the counter to 0 if it doesn't exist already\nvar total_good_quality_corn = context.get('total_good_quality_corn')||0;\nvar total_bad_quality_corn = context.get('total_bad_quality_corn')||0;\n\ntotal_good_quality_corn += Math.floor(Math.random() * (40 - 25)) + 25;\ntotal_bad_quality_corn += Math.floor(Math.random() * (20 - 5)) + 5;\n\n// store the value back\ncontext.set('total_good_quality_corn',total_good_quality_corn);\ncontext.set('total_bad_quality_corn',total_bad_quality_corn);\n\nconst timestamp = new Date();\nmsg.topic = 'quality sorting';\nmsg.payload = [total_good_quality_corn, total_bad_quality_corn, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 310,
         "y": 60,
         "wires": [
@@ -157,10 +159,19 @@
         "type": "inject",
         "z": "d907382e.777fa8",
         "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
         "repeat": "5",
         "crontab": "",
         "once": true,
-        "onceDelay": "0.1",
+        "onceDelay": "2",
         "topic": "",
         "payload": "",
         "payloadType": "date",
@@ -177,9 +188,11 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "STORAGE STATION",
-        "func": "let totalG = msg.payload;\n\nvar stored = context.get('stored')||0;\nvar dispatched = context.get('dispatched')||0;\n\nstored += Math.floor(Math.random() * (25 - 10)) + 10 ;\nlet currentDispatch = Math.floor(Math.random() * (10 - 5)) + 5 ;\ndispatched += currentDispatch\nstored -= currentDispatch;\n\ncontext.set('dispatched',dispatched);\ncontext.set('stored', stored);\n\nvar notStored = context.get('notStored')||0;\nnotStored = totalG - (stored + dispatched);\ncontext.set('notStored',notStored);\n\nconst now = new Date();\nmsg.topic = 'storage';\nmsg.payload = [stored, notStored, dispatched, currentDispatch, now.toISOString()];\nreturn msg;",
+        "func": "let total_good_quality = msg.payload;\n\nvar storage = context.get('storage')||0;\n//required to calculate shared_sink\nvar total_dispatched = context.get('total_dispatched')||0;\n\n//vacuum pressure\nlet flow_in = Math.floor(Math.random() * (25 - 10)) + 10; \nstorage += flow_in;\n//vibration frequency\nlet flow_out = Math.floor(Math.random() * (10 - 5)) + 5 ;\n\n//prevent negative data for whole numbers range\nif (flow_out > storage)\n{\n    total_dispatched += storage;\n    flow_out = storage;\n    storage -= storage; //seting storage to zero\n}\nelse\n{\n    total_dispatched += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_dispatched',total_dispatched);\ncontext.set('storage', storage);\n\nvar shared_sink = context.get('shared_sink')||0;\nshared_sink = total_good_quality - (storage + total_dispatched);\ncontext.set('shared_sink',shared_sink);\n\nconst timestamp = new Date();\nmsg.topic = 'storage';\nmsg.payload = [shared_sink, storage, flow_in, flow_out, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 280,
         "y": 380,
         "wires": [
@@ -194,56 +207,15 @@
         "icon": "font-awesome/fa-industry"
     },
     {
-        "id": "571f9cd5.9789c4",
-        "type": "ui_chart",
-        "z": "d907382e.777fa8",
-        "name": "Corn Storage",
-        "group": "75af0f24.cd9bf",
-        "order": 13,
-        "width": 12,
-        "height": 5,
-        "label": "Corn Storage Station",
-        "chartType": "bar",
-        "legend": "false",
-        "xformat": "HH:mm:ss",
-        "interpolate": "linear",
-        "nodata": "waiting for data...",
-        "dot": false,
-        "ymin": "0",
-        "ymax": "",
-        "removeOlder": "1",
-        "removeOlderPoints": "",
-        "removeOlderUnit": "3600",
-        "cutout": 0,
-        "useOneColor": false,
-        "useUTC": false,
-        "colors": [
-            "#1f77b4",
-            "#aec7e8",
-            "#ff7f0e",
-            "#2ca02c",
-            "#98df8a",
-            "#d62728",
-            "#ff9896",
-            "#9467bd",
-            "#c5b0d5"
-        ],
-        "useOldStyle": false,
-        "outputs": 1,
-        "x": 1300,
-        "y": 360,
-        "wires": [
-            []
-        ]
-    },
-    {
         "id": "626f1d25.01be04",
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "Total Good Corn",
-        "func": "msg.topic = 'good';\nmsg.payload = msg.payload[0]; //good corn\nreturn msg;",
+        "func": "msg.topic = 'good';\nmsg.payload = msg.payload[0]; //total good quality corn\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 580,
         "y": 80,
         "wires": [
@@ -262,6 +234,8 @@
         "func": "msg.topic = 'bad'\nmsg.payload = msg.payload[1]; //bad corn\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 580,
         "y": 40,
         "wires": [
@@ -318,6 +292,7 @@
         "id": "88ea1184.3c815",
         "type": "ui_chart",
         "z": "d907382e.777fa8",
+        "d": true,
         "name": "Good-bad Corn Ratio",
         "group": "75af0f24.cd9bf",
         "order": 3,
@@ -369,14 +344,16 @@
         "topic": "",
         "payload": "[]",
         "payloadType": "json",
-        "x": 1090,
+        "x": 1110,
         "y": 800,
         "wires": [
             [
                 "88ea1184.3c815",
                 "8bd45902.87a038",
-                "571f9cd5.9789c4",
-                "a3fea5b5.4ce498"
+                "a3fea5b5.4ce498",
+                "3a58defc.95efd2",
+                "7af9c9b4.15c7e8",
+                "3b8d5a2b.19f276"
             ]
         ]
     },
@@ -384,15 +361,17 @@
         "id": "71da7193.679ec",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Stored Corn",
-        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'stored';\nreturn msg;",
+        "name": "Storage",
+        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'buffering storage';\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 750,
-        "y": 320,
+        "initialize": "",
+        "finalize": "",
+        "x": 740,
+        "y": 360,
         "wires": [
             [
-                "571f9cd5.9789c4"
+                "3b8d5a2b.19f276"
             ]
         ]
     },
@@ -400,15 +379,17 @@
         "id": "1cc47e26.4aaec2",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Not Stored Corn",
-        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'not stored'\nreturn msg;",
+        "name": "Shared Sink",
+        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'shared sink'\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 760,
-        "y": 360,
+        "initialize": "",
+        "finalize": "",
+        "x": 750,
+        "y": 320,
         "wires": [
             [
-                "571f9cd5.9789c4"
+                "3b8d5a2b.19f276"
             ]
         ]
     },
@@ -416,15 +397,17 @@
         "id": "c908c7cd.a078d8",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Dispached",
-        "func": "msg.payload = msg.payload[2];\nmsg.topic = 'dispached'\nreturn msg;",
+        "name": "Flow In",
+        "func": "msg.payload = msg.payload[2];\nmsg.topic = 'vacuum pressure flow in'\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 750,
+        "initialize": "",
+        "finalize": "",
+        "x": 740,
         "y": 400,
         "wires": [
             [
-                "571f9cd5.9789c4"
+                "7af9c9b4.15c7e8"
             ]
         ]
     },
@@ -433,16 +416,20 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "DOSING STATION",
-        "func": "let received = msg.payload;\nvar stored = context.get('stored')||0;\nvar produced = context.get('produced')||0;\n\nstored += received ;\nlet currentDispatch = Math.floor(Math.random() * (5 - 1)) + 1 ;\nproduced += currentDispatch;\nstored -= currentDispatch;\n\ncontext.set('produced',produced);\ncontext.set('stored', stored);\n\nconst now = new Date();\nmsg.topic = 'dosing';\nmsg.payload = [stored, produced, now.toISOString()];\nreturn msg;",
+        "func": "let flow_in = msg.payload;\nvar storage = context.get('storage')||0;\nvar total_production = context.get('total_production')||0;\n\nstorage += flow_in;\n//screw conveyor speed \nlet flow_out = Math.floor(Math.random() * (5 - 1)) + 1 ;\n\nif (flow_out > storage)\n{\n    total_production += storage;\n    flow_out = storage;\n    storage -= storage; //setting storage to zero\n}\nelse\n{\n    total_production += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_production',total_production);\ncontext.set('storage', storage);\n\nconst timestamp = new Date();\nmsg.topic = 'dosing';\nmsg.payload = [storage, flow_in, flow_out, total_production, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 270,
         "y": 600,
         "wires": [
             [
                 "24355cca.2c28d4",
                 "9b7d12ba.cd37d",
-                "d8fba48d.e0f208"
+                "d8fba48d.e0f208",
+                "da5bbf6e.61b0a",
+                "e08e954d.56a588"
             ]
         ],
         "icon": "font-awesome/fa-industry"
@@ -485,7 +472,7 @@
         "useOldStyle": false,
         "outputs": 1,
         "x": 1300,
-        "y": 600,
+        "y": 700,
         "wires": [
             []
         ]
@@ -494,15 +481,17 @@
         "id": "9b7d12ba.cd37d",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Produced (Dispached)",
-        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'produced'\nreturn msg;",
+        "name": "Flow In",
+        "func": "msg.payload = msg.payload[1];\nmsg.topic = 'vacuum-vibration flow in'\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 760,
+        "initialize": "",
+        "finalize": "",
+        "x": 720,
         "y": 620,
         "wires": [
             [
-                "a3fea5b5.4ce498"
+                "3a58defc.95efd2"
             ]
         ]
     },
@@ -510,15 +499,17 @@
         "id": "24355cca.2c28d4",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Stored Corn",
-        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'stored';\nreturn msg;",
+        "name": "Storage",
+        "func": "msg.payload = msg.payload[0];\nmsg.topic = 'dosing storage';\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 730,
+        "initialize": "",
+        "finalize": "",
+        "x": 720,
         "y": 580,
         "wires": [
             [
-                "a3fea5b5.4ce498"
+                "3b8d5a2b.19f276"
             ]
         ]
     },
@@ -526,15 +517,18 @@
         "id": "ca57d019.0c693",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "currentDispatch",
-        "func": "msg.payload = msg.payload[3];\nmsg.topic = 'current dispatch'\nreturn msg;",
+        "name": "Flow Out",
+        "func": "msg.payload = msg.payload[3];\nmsg.topic = 'vibration frequency flow out'\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 760,
+        "initialize": "",
+        "finalize": "",
+        "x": 740,
         "y": 440,
         "wires": [
             [
-                "bae2c841.61a408"
+                "bae2c841.61a408",
+                "7af9c9b4.15c7e8"
             ]
         ]
     },
@@ -543,9 +537,11 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "Bosch IoT Gateway",
-        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.good = arrivedPayload[0];\n    msg.payload.bad = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO qualitySorting (`good`, `bad`, `timestamp`) VALUES (:good, :bad, :timestamp);\"\n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.stored = arrivedPayload[0];\n    msg.payload.notStored = arrivedPayload[1];\n    msg.payload.dispatched = arrivedPayload[2];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO storage (`stored`, `notStored`,`dispatched`, `timestamp`) VALUES (:stored, :notStored, :dispatched, :timestamp);\"\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.stored = arrivedPayload[0];\n    msg.payload.produced = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO dosing (`stored`, `produced`, `timestamp`) VALUES (:stored, :produced, :timestamp);\"   \n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
+        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.total_good_corn = arrivedPayload[0];\n    msg.payload.total_bad_corn = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO qualitySorting (`total_good_corn`, `total_bad_corn`, `timestamp`) VALUES (:total_good_corn, :total_bad_corn, :timestamp);\"\n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.shared_sink = arrivedPayload[0];\n    msg.payload.storage = arrivedPayload[1];\n    msg.payload.flow_in = arrivedPayload[2];\n    msg.payload.flow_out = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO storage (`shared_sink`, `storage`,`flow_in`, `flow_out`, `timestamp`) VALUES (:shared_sink, :storage, :flow_in, :flow_out, :timestamp);\"\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.storage = arrivedPayload[0];\n    msg.payload.flow_in = arrivedPayload[1];\n    msg.payload.flow_out = arrivedPayload[2];\n    msg.payload.total_production = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO dosing (`storage`, `flow_in`, `flow_out`, `total_production`, `timestamp`) VALUES (:storage, :flow_in, :flow_out, :total_production, :timestamp);\"   \n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
+        "initialize": "",
+        "finalize": "",
         "x": 570,
         "y": 240,
         "wires": [
@@ -601,6 +597,171 @@
             [
                 "60623fc5.12a7a"
             ]
+        ]
+    },
+    {
+        "id": "e08e954d.56a588",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Flow Out",
+        "func": "msg.payload = msg.payload[2];\nmsg.topic = 'screw conveyor flow out';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 720,
+        "y": 660,
+        "wires": [
+            [
+                "3a58defc.95efd2"
+            ]
+        ]
+    },
+    {
+        "id": "da5bbf6e.61b0a",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Total Production",
+        "func": "msg.payload = msg.payload[3];\nmsg.topic = 'total production';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 743.5625,
+        "y": 701.1111450195312,
+        "wires": [
+            [
+                "a3fea5b5.4ce498"
+            ]
+        ]
+    },
+    {
+        "id": "3a58defc.95efd2",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Dosing Station",
+        "group": "75af0f24.cd9bf",
+        "order": 14,
+        "width": 12,
+        "height": 5,
+        "label": "Dosing Station",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1300,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3b8d5a2b.19f276",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Intermediary Storage Units",
+        "group": "75af0f24.cd9bf",
+        "order": 14,
+        "width": 12,
+        "height": 5,
+        "label": "Intermediary Storage Units",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1340,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7af9c9b4.15c7e8",
+        "type": "ui_chart",
+        "z": "d907382e.777fa8",
+        "name": "Storage Station",
+        "group": "75af0f24.cd9bf",
+        "order": 14,
+        "width": 12,
+        "height": 5,
+        "label": "Storage Station",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "bezier",
+        "nodata": "waiting for data...",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 1300,
+        "y": 420,
+        "wires": [
+            []
         ]
     }
 ]
