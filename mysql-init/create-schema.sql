@@ -1,8 +1,8 @@
 CREATE SCHEMA `festo`;
 use festo;
 CREATE TABLE `qualitySorting` (
-  `total_good_corn` INT UNSIGNED,
-  `total_bad_corn` INT UNSIGNED,
+  `good_quality_flow_out` INT UNSIGNED,
+  `bad_quality_flow_out` INT UNSIGNED,
   `timestamp` VARCHAR (100) NULL DEFAULT NULL
 );
 CREATE TABLE `storage` (
