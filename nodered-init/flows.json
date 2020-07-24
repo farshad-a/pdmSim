@@ -2,7 +2,14 @@
     {
         "id": "d907382e.777fa8",
         "type": "tab",
-        "label": "AMP",
+        "label": "AMP - Analytics",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "36ee829d.e2f00e",
+        "type": "tab",
+        "label": "AMP - Control",
         "disabled": false,
         "info": ""
     },
@@ -134,22 +141,90 @@
         }
     },
     {
+        "id": "99b16eed.4c363",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "",
+        "broker": "sim-broker",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": false,
+        "keepalive": "33",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "100a9c4.256fd64",
+        "type": "ui_spacer",
+        "name": "spacer",
+        "group": "75af0f24.cd9bf",
+        "order": 6,
+        "width": 12,
+        "height": 1
+    },
+    {
+        "id": "629dfcd3.eaa634",
+        "type": "ui_spacer",
+        "name": "spacer",
+        "group": "75af0f24.cd9bf",
+        "order": 9,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "2d6e309e.b93a8",
+        "type": "ui_spacer",
+        "name": "spacer",
+        "group": "75af0f24.cd9bf",
+        "order": 11,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "397f74ed.dfbf2c",
+        "type": "ui_spacer",
+        "name": "spacer",
+        "group": "75af0f24.cd9bf",
+        "order": 12,
+        "width": 3,
+        "height": 1
+    },
+    {
+        "id": "246f7661.d800aa",
+        "type": "ui_spacer",
+        "name": "spacer",
+        "group": "75af0f24.cd9bf",
+        "order": 13,
+        "width": 3,
+        "height": 1
+    },
+    {
         "id": "b04d9fa4.f56fa",
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "QUALITY SORTING STATION",
-        "func": "//initialise the counter to 0 if it doesn't exist already\nvar total_good_quality_corn = context.get('total_good_quality_corn')||0;\nvar total_bad_quality_corn = context.get('total_bad_quality_corn')||0;\n\ntotal_good_quality_corn += Math.floor(Math.random() * (40 - 25)) + 25;\ntotal_bad_quality_corn += Math.floor(Math.random() * (20 - 5)) + 5;\n\n// store the value back\ncontext.set('total_good_quality_corn',total_good_quality_corn);\ncontext.set('total_bad_quality_corn',total_bad_quality_corn);\n\nconst timestamp = new Date();\nmsg.topic = 'quality sorting';\nmsg.payload = [total_good_quality_corn, total_bad_quality_corn, timestamp.toISOString()];\nreturn msg;",
+        "func": "//initialise the counter to 0 if it doesn't exist already\nvar good_quality_flow_out = context.get('good_quality_flow_out')||0;\nvar bad_quality_flow_out = context.get('bad_quality_flow_out')||0;\n\ngood_quality_flow_out = Math.floor(Math.random() * (40 - 25)) + 25;\nbad_quality_flow_out = Math.floor(Math.random() * (20 - 5)) + 5;\n\n// store the value back\ncontext.set('good_quality_flow_out',good_quality_flow_out);\ncontext.set('bad_quality_flow_out',bad_quality_flow_out);\n\nconst timestamp = new Date();\nmsg.topic = 'quality sorting';\nmsg.payload = [good_quality_flow_out, bad_quality_flow_out, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 310,
-        "y": 60,
+        "x": 170,
+        "y": 80,
         "wires": [
             [
                 "626f1d25.01be04",
                 "839b3b50.2a7618",
-                "d8fba48d.e0f208"
+                "d8fba48d.e0f208",
+                "f37364b9.6bf048"
             ]
         ],
         "icon": "font-awesome/fa-industry"
@@ -171,12 +246,12 @@
         "repeat": "5",
         "crontab": "",
         "once": true,
-        "onceDelay": "2",
+        "onceDelay": "3",
         "topic": "",
         "payload": "",
         "payloadType": "date",
         "x": 70,
-        "y": 60,
+        "y": 40,
         "wires": [
             [
                 "b04d9fa4.f56fa"
@@ -188,20 +263,21 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "STORAGE STATION",
-        "func": "let total_good_quality = msg.payload;\n\nvar storage = context.get('storage')||0;\n//required to calculate shared_sink\nvar total_dispatched = context.get('total_dispatched')||0;\n\n//vacuum pressure\nlet flow_in = Math.floor(Math.random() * (25 - 10)) + 10; \nstorage += flow_in;\n//vibration frequency\nlet flow_out = Math.floor(Math.random() * (10 - 5)) + 5 ;\n\n//prevent negative data for whole numbers range\nif (flow_out > storage)\n{\n    total_dispatched += storage;\n    flow_out = storage;\n    storage -= storage; //seting storage to zero\n}\nelse\n{\n    total_dispatched += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_dispatched',total_dispatched);\ncontext.set('storage', storage);\n\nvar shared_sink = context.get('shared_sink')||0;\nshared_sink = total_good_quality - (storage + total_dispatched);\ncontext.set('shared_sink',shared_sink);\n\nconst timestamp = new Date();\nmsg.topic = 'storage';\nmsg.payload = [shared_sink, storage, flow_in, flow_out, timestamp.toISOString()];\nreturn msg;",
+        "func": "let received_good_quality = msg.payload;\n\nvar storage = context.get('storage')||0;\n//required to calculate shared_sink\nvar total_dispatched = context.get('total_dispatched')||0;\n//initialising the shared sink with the first total_good_quality received\nvar shared_sink = context.get('shared_sink')||0; \n\nshared_sink += received_good_quality;\n\n//vacuum pressure\nlet flow_in = global.get('vacuum') * (Math.floor(Math.random() * (25 - 10)) + 10); \n//prevent negative data for whole numbers range in shared sink\n\nif (flow_in > shared_sink) {\n    flow_in = shared_sink;\n}\n\nstorage += flow_in;\n//vibration frequency\nlet flow_out = global.get('vibration') * (Math.floor(Math.random() * (10 - 5)) + 5) ;\n\n//prevent negative data for whole numbers range in storage\nif (flow_out > storage) {\n    total_dispatched += storage;\n    flow_out = storage;\n    storage -= storage; //seting storage to zero\n}\nelse {\n    total_dispatched += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_dispatched',total_dispatched);\ncontext.set('storage', storage);\n\nshared_sink -= flow_in;\ncontext.set('shared_sink',shared_sink);\n\nconst timestamp = new Date();\nmsg.topic = 'storage';\nmsg.payload = [shared_sink, storage, flow_in, flow_out, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 280,
-        "y": 380,
+        "x": 180,
+        "y": 420,
         "wires": [
             [
                 "71da7193.679ec",
                 "1cc47e26.4aaec2",
                 "c908c7cd.a078d8",
                 "ca57d019.0c693",
-                "d8fba48d.e0f208"
+                "d8fba48d.e0f208",
+                "f37364b9.6bf048"
             ]
         ],
         "icon": "font-awesome/fa-industry"
@@ -210,18 +286,17 @@
         "id": "626f1d25.01be04",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Total Good Corn",
-        "func": "msg.topic = 'good';\nmsg.payload = msg.payload[0]; //total good quality corn\nreturn msg;",
+        "name": "Good Corn Flow Out",
+        "func": "msg.topic = 'good corn flow out';\nmsg.payload = msg.payload[0]; //total good quality corn\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 580,
-        "y": 80,
+        "x": 460,
+        "y": 100,
         "wires": [
             [
                 "8bd45902.87a038",
-                "88ea1184.3c815",
                 "cdd3d0a8.04bb6"
             ]
         ]
@@ -230,18 +305,17 @@
         "id": "839b3b50.2a7618",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Total Bad Corn",
-        "func": "msg.topic = 'bad'\nmsg.payload = msg.payload[1]; //bad corn\nreturn msg;",
+        "name": "Bad Corn Flow Out",
+        "func": "msg.topic = 'bad corn flow out'\nmsg.payload = msg.payload[1]; //bad corn\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 580,
-        "y": 40,
+        "x": 450,
+        "y": 60,
         "wires": [
             [
-                "8bd45902.87a038",
-                "88ea1184.3c815"
+                "8bd45902.87a038"
             ]
         ]
     },
@@ -282,52 +356,8 @@
         ],
         "useOldStyle": false,
         "outputs": 1,
-        "x": 1320,
+        "x": 1120,
         "y": 80,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "88ea1184.3c815",
-        "type": "ui_chart",
-        "z": "d907382e.777fa8",
-        "d": true,
-        "name": "Good-bad Corn Ratio",
-        "group": "75af0f24.cd9bf",
-        "order": 3,
-        "width": 7,
-        "height": 5,
-        "label": "Good-bad Corn Ratio",
-        "chartType": "pie",
-        "legend": "true",
-        "xformat": "HH:mm:ss",
-        "interpolate": "linear",
-        "nodata": "waiting for data...",
-        "dot": false,
-        "ymin": "",
-        "ymax": "",
-        "removeOlder": 1,
-        "removeOlderPoints": "",
-        "removeOlderUnit": "3600",
-        "cutout": 0,
-        "useOneColor": false,
-        "useUTC": false,
-        "colors": [
-            "#1f77b4",
-            "#aec7e8",
-            "#ff7f0e",
-            "#2ca02c",
-            "#98df8a",
-            "#d62728",
-            "#ff9896",
-            "#9467bd",
-            "#c5b0d5"
-        ],
-        "useOldStyle": false,
-        "outputs": 1,
-        "x": 1320,
-        "y": 40,
         "wires": [
             []
         ]
@@ -344,11 +374,10 @@
         "topic": "",
         "payload": "[]",
         "payloadType": "json",
-        "x": 1110,
+        "x": 910,
         "y": 800,
         "wires": [
             [
-                "88ea1184.3c815",
                 "8bd45902.87a038",
                 "a3fea5b5.4ce498",
                 "3a58defc.95efd2",
@@ -368,7 +397,7 @@
         "initialize": "",
         "finalize": "",
         "x": 740,
-        "y": 360,
+        "y": 400,
         "wires": [
             [
                 "3b8d5a2b.19f276"
@@ -386,7 +415,7 @@
         "initialize": "",
         "finalize": "",
         "x": 750,
-        "y": 320,
+        "y": 360,
         "wires": [
             [
                 "3b8d5a2b.19f276"
@@ -404,7 +433,7 @@
         "initialize": "",
         "finalize": "",
         "x": 740,
-        "y": 400,
+        "y": 440,
         "wires": [
             [
                 "7af9c9b4.15c7e8"
@@ -416,20 +445,21 @@
         "type": "function",
         "z": "d907382e.777fa8",
         "name": "DOSING STATION",
-        "func": "let flow_in = msg.payload;\nvar storage = context.get('storage')||0;\nvar total_production = context.get('total_production')||0;\n\nstorage += flow_in;\n//screw conveyor speed \nlet flow_out = Math.floor(Math.random() * (5 - 1)) + 1 ;\n\nif (flow_out > storage)\n{\n    total_production += storage;\n    flow_out = storage;\n    storage -= storage; //setting storage to zero\n}\nelse\n{\n    total_production += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_production',total_production);\ncontext.set('storage', storage);\n\nconst timestamp = new Date();\nmsg.topic = 'dosing';\nmsg.payload = [storage, flow_in, flow_out, total_production, timestamp.toISOString()];\nreturn msg;",
+        "func": "let flow_in = msg.payload;\nvar storage = context.get('storage')||0;\nvar total_production = context.get('total_production')||0;\n\nstorage += flow_in;\n//screw conveyor speed \nlet flow_out = global.get('screw') * (Math.floor(Math.random() * (5 - 1)) + 1);\n\nif (flow_out > storage)\n{\n    total_production += storage;\n    flow_out = storage;\n    storage -= storage; //setting storage to zero\n}\nelse\n{\n    total_production += flow_out;\n    storage -= flow_out;\n}\n\ncontext.set('total_production',total_production);\ncontext.set('storage', storage);\n\nconst timestamp = new Date();\nmsg.topic = 'dosing';\nmsg.payload = [storage, flow_in, flow_out, total_production, timestamp.toISOString()];\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 270,
-        "y": 600,
+        "x": 190,
+        "y": 660,
         "wires": [
             [
                 "24355cca.2c28d4",
                 "9b7d12ba.cd37d",
                 "d8fba48d.e0f208",
                 "da5bbf6e.61b0a",
-                "e08e954d.56a588"
+                "e08e954d.56a588",
+                "f37364b9.6bf048"
             ]
         ],
         "icon": "font-awesome/fa-industry"
@@ -440,7 +470,7 @@
         "z": "d907382e.777fa8",
         "name": "Dosing Station",
         "group": "75af0f24.cd9bf",
-        "order": 14,
+        "order": 2,
         "width": 12,
         "height": 5,
         "label": "Dosing Station",
@@ -471,7 +501,7 @@
         ],
         "useOldStyle": false,
         "outputs": 1,
-        "x": 1300,
+        "x": 1100,
         "y": 700,
         "wires": [
             []
@@ -524,7 +554,7 @@
         "initialize": "",
         "finalize": "",
         "x": 740,
-        "y": 440,
+        "y": 480,
         "wires": [
             [
                 "bae2c841.61a408",
@@ -536,14 +566,14 @@
         "id": "d8fba48d.e0f208",
         "type": "function",
         "z": "d907382e.777fa8",
-        "name": "Bosch IoT Gateway",
-        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.total_good_corn = arrivedPayload[0];\n    msg.payload.total_bad_corn = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO qualitySorting (`total_good_corn`, `total_bad_corn`, `timestamp`) VALUES (:total_good_corn, :total_bad_corn, :timestamp);\"\n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.shared_sink = arrivedPayload[0];\n    msg.payload.storage = arrivedPayload[1];\n    msg.payload.flow_in = arrivedPayload[2];\n    msg.payload.flow_out = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO storage (`shared_sink`, `storage`,`flow_in`, `flow_out`, `timestamp`) VALUES (:shared_sink, :storage, :flow_in, :flow_out, :timestamp);\"\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.storage = arrivedPayload[0];\n    msg.payload.flow_in = arrivedPayload[1];\n    msg.payload.flow_out = arrivedPayload[2];\n    msg.payload.total_production = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO dosing (`storage`, `flow_in`, `flow_out`, `total_production`, `timestamp`) VALUES (:storage, :flow_in, :flow_out, :total_production, :timestamp);\"   \n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
+        "name": "Bosch IoT Gateway - MySQL Bundle",
+        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.good_quality_flow_out = arrivedPayload[0];\n    msg.payload.bad_quality_flow_out = arrivedPayload[1];\n    msg.payload.timestamp = arrivedPayload[2];\n    \n    msg.topic = \"INSERT INTO qualitySorting (`good_quality_flow_out`, `bad_quality_flow_out`, `timestamp`) VALUES (:good_quality_flow_out, :bad_quality_flow_out, :timestamp);\"\n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.shared_sink = arrivedPayload[0];\n    msg.payload.storage = arrivedPayload[1];\n    msg.payload.flow_in = arrivedPayload[2];\n    msg.payload.flow_out = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO storage (`shared_sink`, `storage`,`flow_in`, `flow_out`, `timestamp`) VALUES (:shared_sink, :storage, :flow_in, :flow_out, :timestamp);\"\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload.storage = arrivedPayload[0];\n    msg.payload.flow_in = arrivedPayload[1];\n    msg.payload.flow_out = arrivedPayload[2];\n    msg.payload.total_production = arrivedPayload[3];\n    msg.payload.timestamp = arrivedPayload[4];\n    \n    msg.topic = \"INSERT INTO dosing (`storage`, `flow_in`, `flow_out`, `total_production`, `timestamp`) VALUES (:storage, :flow_in, :flow_out, :total_production, :timestamp);\"   \n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 570,
-        "y": 240,
+        "x": 510,
+        "y": 260,
         "wires": [
             [
                 "60623fc5.12a7a"
@@ -557,8 +587,8 @@
         "z": "d907382e.777fa8",
         "mydb": "cfafff28.7df5e",
         "name": "FESTO DB",
-        "x": 870,
-        "y": 240,
+        "x": 790,
+        "y": 220,
         "wires": [
             []
         ]
@@ -575,8 +605,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 810,
-        "y": 120,
+        "x": 790,
+        "y": 140,
         "wires": [
             [
                 "651df3d6.5f2e7c"
@@ -591,7 +621,7 @@
         "func": "msg.payload = {};\n\nmsg.topic = \"TRUNCATE TABLE dosing;\"\nnode.send(msg);\n\nmsg.topic = \"TRUNCATE TABLE qualitySorting;\"\nnode.send(msg);\n\nmsg.topic = \"TRUNCATE TABLE storage;\"\nnode.send(msg);\n\nreturn;",
         "outputs": 1,
         "noerr": 0,
-        "x": 820,
+        "x": 790,
         "y": 180,
         "wires": [
             [
@@ -641,7 +671,7 @@
         "z": "d907382e.777fa8",
         "name": "Dosing Station",
         "group": "75af0f24.cd9bf",
-        "order": 14,
+        "order": 3,
         "width": 12,
         "height": 5,
         "label": "Dosing Station",
@@ -672,7 +702,7 @@
         ],
         "useOldStyle": false,
         "outputs": 1,
-        "x": 1300,
+        "x": 1100,
         "y": 640,
         "wires": [
             []
@@ -684,7 +714,7 @@
         "z": "d907382e.777fa8",
         "name": "Intermediary Storage Units",
         "group": "75af0f24.cd9bf",
-        "order": 14,
+        "order": 4,
         "width": 12,
         "height": 5,
         "label": "Intermediary Storage Units",
@@ -715,8 +745,8 @@
         ],
         "useOldStyle": false,
         "outputs": 1,
-        "x": 1340,
-        "y": 320,
+        "x": 1140,
+        "y": 380,
         "wires": [
             []
         ]
@@ -727,7 +757,7 @@
         "z": "d907382e.777fa8",
         "name": "Storage Station",
         "group": "75af0f24.cd9bf",
-        "order": 14,
+        "order": 5,
         "width": 12,
         "height": 5,
         "label": "Storage Station",
@@ -758,10 +788,165 @@
         ],
         "useOldStyle": false,
         "outputs": 1,
-        "x": 1300,
-        "y": 420,
+        "x": 1100,
+        "y": 480,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "ebf8d931.11f068",
+        "type": "mqtt out",
+        "z": "d907382e.777fa8",
+        "name": "Digital Twin Publisher",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "broker": "99b16eed.4c363",
+        "x": 820,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "392f64ff.26322c",
+        "type": "function",
+        "z": "36ee829d.e2f00e",
+        "name": "Global Context - Actuators",
+        "func": "if (msg.topic === 'vacuum')\n{\n    global.set('vacuum', msg.payload);\n}\n\nif (msg.topic === 'vibration')\n{\n    global.set('vibration', msg.payload);\n}\n\nif (msg.topic === 'screw')\n{\n    global.set('screw', msg.payload);\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nvar vacuum = global.get('vacuum')||1;\nvar vibration = global.get('vibration')||1;\nvar screw = global.get('screw')||1;\n\nvacuum = global.set('vacuum', vacuum);\nvibration = global.set('vibration', vibration);\nscrew = global.set('screw', screw);",
+        "finalize": "",
+        "x": 550,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "56f114c6.18bf6c",
+        "type": "inject",
+        "z": "36ee829d.e2f00e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.2",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 80,
+        "wires": [
+            [
+                "392f64ff.26322c"
+            ]
+        ]
+    },
+    {
+        "id": "f37364b9.6bf048",
+        "type": "function",
+        "z": "d907382e.777fa8",
+        "name": "Bosch IoT Gateway - MQTT Bundle",
+        "func": "if (msg.topic === 'quality sorting')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload = {\n        \"value\":{\n            good_quality_flow_out: arrivedPayload[0],\n            bad_quality_flow_out: arrivedPayload[1]  \n        },\n        \"timestamp\": arrivedPayload[2]\n    }\n\n    msg.topic = '/festo/digitaltwin/qualitysorting'\n    msg.qos = 1\n    msg.retain = true    \n}\n\nelse if (msg.topic === 'storage')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload = {\n        \"value\":{\n            \"shared_sink\": arrivedPayload[0],\n            \"storage\": rrivedPayload[1],\n            \"flow_in\": arrivedPayload[3],\n            \"flow_out\": arrivedPayload[4]\n        },\n        \"timestamp\": timestamp\n    }\n    \n    msg.topic = '/festo/digitaltwin/storage'\n    msg.qos = 1\n    msg.retain = true\n}\n\nelse if (msg.topic === 'dosing')\n{\n    const arrivedPayload = msg.payload;\n    msg.payload = {};\n    \n    msg.payload = {\n        \"value\":{\n            \"storage\": arrivedPayload[0],\n            \"flow_in\": arrivedPayload[2],\n            \"flow_out\": arrivedPayload[3],\n            \"total_production\": arrivedPayload[4]\n        },\n        \"timestamp\": timestamp\n    }\n    \n    msg.topic = '/festo/digitaltwin/dosing'\n    msg.qos = 1\n    msg.retain = true\n}\n\nelse\n{\n    node.error('incorrect data arrived');\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 500,
+        "y": 300,
+        "wires": [
+            [
+                "ebf8d931.11f068"
+            ]
+        ],
+        "icon": "font-awesome/fa-cube"
+    },
+    {
+        "id": "b4e5c809.02d728",
+        "type": "ui_numeric",
+        "z": "36ee829d.e2f00e",
+        "name": "",
+        "label": "Vacuum",
+        "tooltip": "",
+        "group": "75af0f24.cd9bf",
+        "order": 8,
+        "width": 6,
+        "height": 2,
+        "wrap": false,
+        "passthru": true,
+        "topic": "vacuum",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "x": 300,
+        "y": 120,
+        "wires": [
+            [
+                "392f64ff.26322c"
+            ]
+        ]
+    },
+    {
+        "id": "194d9722.0c74e9",
+        "type": "ui_numeric",
+        "z": "36ee829d.e2f00e",
+        "name": "",
+        "label": "Vibration",
+        "tooltip": "",
+        "group": "75af0f24.cd9bf",
+        "order": 7,
+        "width": 6,
+        "height": 2,
+        "wrap": false,
+        "passthru": true,
+        "topic": "vibration",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "x": 300,
+        "y": 160,
+        "wires": [
+            [
+                "392f64ff.26322c"
+            ]
+        ]
+    },
+    {
+        "id": "d6f6efad.4e0d4",
+        "type": "ui_numeric",
+        "z": "36ee829d.e2f00e",
+        "name": "",
+        "label": "Screw",
+        "tooltip": "",
+        "group": "75af0f24.cd9bf",
+        "order": 10,
+        "width": 6,
+        "height": 2,
+        "wrap": false,
+        "passthru": true,
+        "topic": "screw",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "x": 310,
+        "y": 200,
+        "wires": [
+            [
+                "392f64ff.26322c"
+            ]
         ]
     }
 ]
