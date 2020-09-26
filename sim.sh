@@ -14,6 +14,18 @@ function rm()
   docker-compose down --rmi all -v
 }
 
+function pause()
+{
+  echo 'Pausing the simulation...'
+  docker-compose pause
+}
+
+function resume()
+{
+  echo 'Resume the simulation...'
+  docker-compose unpause
+}
+
 if [ $mode == 'run' ]
 then
   run
@@ -30,6 +42,18 @@ if [ $mode == 'reload' ]
 then
   rm
   run
+  exit
+fi
+
+if [ $mode == 'pause' ]
+then
+  pause
+  exit
+fi
+
+if [ $mode == 'resume' ]
+then
+  resume
   exit
 fi
 

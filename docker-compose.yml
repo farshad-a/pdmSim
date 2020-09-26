@@ -13,6 +13,7 @@ services:
     depends_on:
       - mysql
       - mqtt-broker
+      - vplc
   mysql:
     build: ./mysql-init
     container_name: sim-mysql
@@ -31,6 +32,15 @@ services:
     container_name: sim-broker
     ports:
       - "1883:1883"
+    networks:
+      - simnet
+  vplc:
+    container_name: sim-vplc
+    build: ./sim_plc
+    volumes:
+      - ./sim_plc/src:/src
+    ports:
+      - "1102:1102"
     networks:
       - simnet
 networks:

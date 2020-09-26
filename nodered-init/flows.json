@@ -948,5 +948,53 @@
                 "392f64ff.26322c"
             ]
         ]
+    },
+    {
+        "id": "6cd5d2e.ad0f02c",
+        "type": "mqtt out",
+        "z": "36ee829d.e2f00e",
+        "name": "New Actuation",
+        "topic": "/festo/actuation/new",
+        "qos": "2",
+        "retain": "false",
+        "broker": "99b16eed.4c363",
+        "x": 680,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "8cfca1a5.b923c",
+        "type": "mqtt in",
+        "z": "36ee829d.e2f00e",
+        "name": "Actuate",
+        "topic": "/festo/actuation",
+        "qos": "2",
+        "datatype": "auto",
+        "broker": "99b16eed.4c363",
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "9b275e2a.946b7"
+            ]
+        ]
+    },
+    {
+        "id": "9b275e2a.946b7",
+        "type": "function",
+        "z": "36ee829d.e2f00e",
+        "name": "Global Context - Actuators",
+        "func": "actuator = JSON.parse(msg.payload)\n\nglobal.set('vacuum', actuator['vacuum']);\nglobal.set('vibration', actuator['vibration']);\nglobal.set('screw', actuator['screw']);\n\nmsg.payload = true\nreturn msg",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nvar vacuum = global.get('vacuum')||1;\nvar vibration = global.get('vibration')||1;\nvar screw = global.get('screw')||1;\n\nvacuum = global.set('vacuum', vacuum);\nvibration = global.set('vibration', vibration);\nscrew = global.set('screw', screw);",
+        "finalize": "",
+        "x": 410,
+        "y": 300,
+        "wires": [
+            [
+                "6cd5d2e.ad0f02c"
+            ]
+        ]
     }
 ]
